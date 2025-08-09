@@ -5,6 +5,7 @@ import threading
 import time
 from overlay.text_overlay import background_opacity
 from language.lenguaje_detect import get_text
+from language.gpt_translator import translate_openai
 
 
 #Variables de Inicio
@@ -93,8 +94,10 @@ def lang_select():
         select = 0  
     return select
 
+#Loop que controla el el estado del OCR
 def ocr_loop():
     def loop():
+        text_actual = []
         while True:
             if run == "running":
                 monitor_index = int(monitorcb.get()) if monitorcb.get() else 1
@@ -102,10 +105,14 @@ def ocr_loop():
                 background_opacity(slider.get())
 
                 raw_text = get_text(screen=monitor_index, lag=l)
-                if "text" in raw_text:
-                    for i, txt in enumerate(raw_text["text"]):
-                        if txt.strip() != "":
-                            print("Texto capturado:", txt)
+                for i, txt in enumerate(raw_text["text"]):
+                    conf = int(raw_text["conf"][i])
+                    if isinstance(txt, str) and txt.strip() != "" and conf >= 60:
+                        translated = translate_openai(txt.strip(), lenguajeOut.get() if lenguajeOut.get() else "English (en)")
+                        text_actual.append(translated)
+                        print(f"OCR Text: {txt} | Confidence: {conf}")
+                    for i in text_actual:
+                        print(i)
             time.sleep(2)
     threading.Thread(target=loop, daemon=True).start()
 
