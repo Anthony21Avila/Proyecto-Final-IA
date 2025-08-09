@@ -4,7 +4,7 @@ import sys
 import threading
 import time
 from overlay.text_overlay import background_opacity
-from language.lenguaje_detect import get_text
+from language.lenguaje_detect import get_text, languaje_detect
 from language.gpt_translator import translate_openai
 
 
@@ -18,6 +18,7 @@ raiz.iconbitmap("icono.ico")
 fondo = "#313131"
 raiz.config(background=fondo)
 lang_code = ["eng","spa", "fra", "chi_sim", "jpn", "kor", "deu", "rus"]
+code = ["en","es", "fr", "zh", "ja", "ko", "de", "ru"]
 
 #Variables de Estado
 run = "paused"
@@ -101,18 +102,20 @@ def ocr_loop():
         while True:
             if run == "running":
                 monitor_index = int(monitorcb.get()) if monitorcb.get() else 1
-                l = lang_code[lang_select()] 
+                l = lang_code[lang_select()]
+                c = code[lang_select()] 
                 background_opacity(slider.get())
 
                 raw_text = get_text(screen=monitor_index, lag=l)
                 for i, txt in enumerate(raw_text["text"]):
                     conf = int(raw_text["conf"][i])
                     if isinstance(txt, str) and txt.strip() != "" and conf >= 60:
-                        translated = translate_openai(txt.strip(), lenguajeOut.get() if lenguajeOut.get() else "English (en)")
-                        text_actual.append(translated)
-                        print(f"OCR Text: {txt} | Confidence: {conf}")
-                    for i in text_actual:
-                        print(i)
+                        lang_val = languaje_detect(txt, c)
+                        if lang_val == True:
+                            translated = translate_openai(txt.strip(), lenguajeOut.get() if lenguajeOut.get() else "English (en)")
+                            text_actual.append({"text": translated, "x": raw_text["left"][i], "y": raw_text["top"][i], "width": raw_text["width"][i], "height": raw_text["height"][i]})
+                for i in text_actual:
+                    print(i)
             time.sleep(2)
     threading.Thread(target=loop, daemon=True).start()
 
