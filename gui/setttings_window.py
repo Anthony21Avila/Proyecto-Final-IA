@@ -3,9 +3,10 @@ from PyQt5 import QtWidgets
 import sys
 import threading
 import time
-from overlay.text_overlay import write_screen
+from overlay.text_overlay import write_screen, destry_labels
 from language.lenguaje_detect import get_text, languaje_detect
 from language.gpt_translator import translate_openai
+from queue import Queue
 
 
 #Variables de Inicio
@@ -13,7 +14,7 @@ raiz = Tk()
 
 raiz.title("Traductor de Texto en Ventana")
 raiz.resizable(False, False)
-raiz.geometry("800x600")
+raiz.geometry("300x600")
 raiz.iconbitmap("icono.ico")
 fondo = "#313131"
 raiz.config(background=fondo)
@@ -22,6 +23,9 @@ code = ["en","es", "fr", "zh", "ja", "ko", "de", "ru"]
 
 #Variables de Estado
 run = "paused"
+
+#Cola para recibir en el hilo principal datos (y evitar que se pete el programa)
+queue = Queue()
 
 #Funcion de Inicio
 def Star_End():
@@ -86,9 +90,13 @@ slider.pack()
 btn_star = Button(raiz, text="Star Translation", command= Star_End)
 btn_star.pack(pady=(30, 0))
 
+#Boton para limpiar pantalla
+btn_clean = Button(raiz, text="Clean Screen", command= destry_labels)
+btn_clean.pack(pady=(10, 0))
+
 #Estado
 Status = Label(raiz, text="Off", bg="black", fg="Red")
-Status.pack(pady=(70, 0))
+Status.pack(pady=(50, 0))
 
 def lang_select():
     valor = lenguajeIn.get()
@@ -103,7 +111,7 @@ def ocr_loop():
     def loop():
         resultado = []
         while True:
-            if run == "running":
+            if  run == "running":
                 monitor_index = int(monitorcb.get())
                 l = lang_code[lang_select()]
                 c = code[lang_select()]
@@ -116,10 +124,21 @@ def ocr_loop():
                         lang_val = languaje_detect(txt, c)
                         if lang_val == True:
                             translated = translate_openai(txt.strip(), lenguajeOut.get())
-                            resultado.append({"text": translated, "x": text["left"][i], "y": text["top"][i], "width": text["width"][i], "height": text["height"][i]})
-                
-                write_screen(slider.get(), resultado)
-            time.sleep(2)
+                            resultado.append({"text": translated, "x": text["left"][i], "y": text["top"][i]})
+                queue.put(resultado)    
+            time.sleep(5)
+
     threading.Thread(target=loop, daemon=True).start()
 
+#Funcion para enviar los datos al overlay en el hilo principal. A tkinter no le gusta abrir ventana en hilos a parte
+def data_queue():
+    #Se usa try para que siempre lo haga, pero solo podra cuando hayan datos en la cola
+    try:
+        resultado = queue.get_nowait() #para sacar y quitar datos de la cola
+        write_screen(slider.get(), resultado, raiz)
+    except:
+        pass
+    raiz.after(4000, data_queue) #para que se llame sola despues de 5 segundos
+
 ocr_loop()
+data_queue()
