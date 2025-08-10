@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets
 import sys
 import threading
 import time
-from overlay.text_overlay import background_opacity
+from overlay.text_overlay import write_screen
 from language.lenguaje_detect import get_text, languaje_detect
 from language.gpt_translator import translate_openai
 
@@ -53,11 +53,13 @@ options = ["English (en)","Spanish (es)", "French (fr)", "Chinese (zh)", "Japane
 labelIn = Label(raiz, text="Select Original Lenguaje", bg=fondo)
 labelIn.pack(pady=(30, 0))
 lenguajeIn = ttk.Combobox(raiz, values=options)
+lenguajeIn.current(0)
 lenguajeIn.pack()
 
 labelOut = Label(raiz, text="Select Destiny Lenguaje", bg=fondo)
 labelOut.pack(pady=(30, 0))
 lenguajeOut = ttk.Combobox(raiz, values=options)
+lenguajeOut.current(0)
 lenguajeOut.pack()
 
 #Seleccionar monitor
@@ -70,6 +72,7 @@ while i in range(monitors):
 monitorlb = Label(raiz, text="Select Monitor", bg=fondo)
 monitorlb.pack(pady=(30, 0))
 monitorcb = ttk.Combobox(raiz, values=monitor_Num)
+monitorcb.current(0)
 monitorcb.pack()
 
 #Slider para opacidad del recuadro negro
@@ -88,7 +91,7 @@ Status = Label(raiz, text="Off", bg="black", fg="Red")
 Status.pack(pady=(70, 0))
 
 def lang_select():
-    valor = lenguajeIn.get() if lenguajeIn.get() else "English (en)"
+    valor = lenguajeIn.get()
     if valor in options:
         select = options.index(valor)
     else:
@@ -98,24 +101,24 @@ def lang_select():
 #Loop que controla el el estado del OCR
 def ocr_loop():
     def loop():
-        text_actual = []
+        resultado = []
         while True:
             if run == "running":
-                monitor_index = int(monitorcb.get()) if monitorcb.get() else 1
+                monitor_index = int(monitorcb.get())
                 l = lang_code[lang_select()]
-                c = code[lang_select()] 
-                background_opacity(slider.get())
+                c = code[lang_select()]
 
-                raw_text = get_text(screen=monitor_index, lag=l)
-                for i, txt in enumerate(raw_text["text"]):
-                    conf = int(raw_text["conf"][i])
-                    if isinstance(txt, str) and txt.strip() != "" and conf >= 60:
+                #Conseguimos el texto de la pantalla y hacemos unas verificaciones para comprobar si debe o no traducirse
+                text = get_text(screen=monitor_index, lag=l)
+                for i, txt in enumerate(text["text"]):
+                    conf = int(text["conf"][i])
+                    if isinstance(txt, str) and txt.strip() != "" and conf >= 50:
                         lang_val = languaje_detect(txt, c)
                         if lang_val == True:
-                            translated = translate_openai(txt.strip(), lenguajeOut.get() if lenguajeOut.get() else "English (en)")
-                            text_actual.append({"text": translated, "x": raw_text["left"][i], "y": raw_text["top"][i], "width": raw_text["width"][i], "height": raw_text["height"][i]})
-                for i in text_actual:
-                    print(i)
+                            translated = translate_openai(txt.strip(), lenguajeOut.get())
+                            resultado.append({"text": translated, "x": text["left"][i], "y": text["top"][i], "width": text["width"][i], "height": text["height"][i]})
+                
+                write_screen(slider.get(), resultado)
             time.sleep(2)
     threading.Thread(target=loop, daemon=True).start()
 

@@ -1,5 +1,4 @@
 from mss import mss
-import pyautogui
 import pytesseract
 from PIL import Image, ImageOps
 from langid import classify, set_languages
@@ -33,7 +32,6 @@ def languaje_detect(txt, code):
             return False
         else:
             lang_text, prob = classify(txt)
-            print(f"El texto {txt} esta en: {lang_text} con {prob}%")
             if lang_text == code and prob >= 6:
                 return True
             else:
