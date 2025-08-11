@@ -15,8 +15,8 @@ raiz.geometry("300x500")
 raiz.iconbitmap("icono.ico")
 fondo = "#313131"
 raiz.config(background=fondo)
-lang_code = ["eng","spa", "fra", "chi_sim", "jpn", "kor", "deu", "rus"]
-code = ["en","es", "fr", "zh", "ja", "ko", "de", "ru"]
+lang_code = ["eng","spa", "fra", "deu"]
+code = ["en","es", "fr", "de"]
 
 #Funcion para iniciar el OCR
 def ocr():
@@ -39,7 +39,7 @@ titule = Label(raiz, text="Screen Translator")
 titule.pack()
 
 #Combobox para idiomas
-options = ["English (en)","Spanish (es)", "French (fr)", "Chinese (zh)", "Japanese (ja)", "Korean (ko)", "German (de)", "Russian (ru)"]
+options = ["English (en)","Spanish (es)", "French (fr)", "German (de)"]
 labelIn = Label(raiz, text="Select Original Lenguaje", bg=fondo)
 labelIn.pack(pady=(30, 0))
 lenguajeIn = ttk.Combobox(raiz, values=options)

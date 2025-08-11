@@ -1,0 +1,6 @@
+Pillow>=10.0.0
+pytesseract>=0.3.10
+openai>=1.35.0
+opencv-python>=4.10.0
+mss>=9.0.1
+pywin32>=306
