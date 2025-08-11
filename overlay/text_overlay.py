@@ -9,8 +9,8 @@ labels = []
 def write_screen(opa, row, raiz):
     global overlay, labels
 
+    screen_w, screen_h = pyautogui.size()
     if overlay is None:
-        screen_w, screen_h = pyautogui.size()
         overlay = Toplevel(raiz)
         opacity = opa/100
         overlay.geometry(f"{screen_w}x{screen_h}+0+0")
@@ -23,13 +23,16 @@ def write_screen(opa, row, raiz):
         
         hwnd = win32gui.GetParent(overlay.winfo_id())
         click_through(hwnd)
-
-    destry_labels()
-
-    for r in row:
-        overtext = Label(overlay, text=r["text"], bg="black", fg="white", font=("Arial", 17))
-        overtext.place(x=r["x"], y=r["y"])
-        labels.append(overtext)
+    
+    width = int(screen_w * (2/3))
+    overtext = Label(overlay, text=row, bg="black", fg="white", font=("Arial", 12), justify="left", anchor="nw", wraplength=width)
+    
+    x = (screen_w - width) // 2
+    y= screen_h // 2
+    
+    overtext.update_idletasks()
+    overtext.place(x=x, y=y, width=width)
+    labels.append(overtext)
 
 def destry_labels():
     global labels

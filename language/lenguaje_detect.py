@@ -15,7 +15,7 @@ def get_text(screen = int, lag = str):
     pytesseract.pytesseract.tesseract_cmd = r"C:/Program Files/Tesseract-OCR/tesseract.exe"
     img = screenshot(monitor=screen)
     img = preprocess_image(img)
-    text = pytesseract.image_to_data(img, lang=lag, output_type=pytesseract.Output.DICT, config=r"--psm 4")
+    text = pytesseract.image_to_string(img, lang=lag, config=r"--psm 4")
     return text
 
 #Procesar la imagen para mejorar el resultado
@@ -23,18 +23,3 @@ def preprocess_image(img):
     img = ImageOps.grayscale(img)
     img = img.point(lambda x: 0 if x < 140 else 255) 
     return img
-
-#Filtro de Idioma y caracteres 
-def languaje_detect(txt, code):
-    set_languages([code])
-    try:
-        if not txt:
-            return False
-        else:
-            lang_text, prob = classify(txt)
-            if lang_text == code and prob >= -6:
-                return True
-            else:
-                return False
-    except:
-        return False
