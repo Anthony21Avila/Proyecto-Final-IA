@@ -1,3 +1,5 @@
+#Anthony Avila 23-SISN-2-002
+
 from mss import mss
 import pytesseract
 from PIL import Image, ImageOps

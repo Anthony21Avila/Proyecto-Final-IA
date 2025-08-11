@@ -16,7 +16,6 @@ raiz.iconbitmap("icono.ico")
 fondo = "#313131"
 raiz.config(background=fondo)
 lang_code = ["eng","spa", "fra", "deu"]
-code = ["en","es", "fr", "de"]
 
 #Funcion para iniciar el OCR
 def ocr():
